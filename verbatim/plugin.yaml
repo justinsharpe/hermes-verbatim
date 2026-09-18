@@ -1,0 +1,31 @@
+name: verbatim
+version: 0.1.0
+kind: standalone
+description: >
+  Typed keep/drop/truncate context engine for Hermes Agent. Replaces
+  age-based tool-result pruning with one-shot relevance-scored retention
+  decisions: user and assistant prose stays byte-exact, only tool result
+  bodies are eligible for pruning, and the built-in ContextCompressor
+  summary remains the fallback authority when typed pruning alone is
+  insufficient. Every decision is logged with confidence to a local
+  ledger for calibration analysis.
+author: Viiy
+license: Apache-2.0
+tags: [context-engine, compaction, context-management]
+requires_env: []
+config_schema:
+  scorer_timeout:
+    type: float
+    default: 25.0
+    minimum: 1.0
+    maximum: 60.0
+    description: >
+      Per-call timeout for the typed scorer, in seconds. Must stay below
+      compression.context_timeout_seconds so the host's cooldown ladder
+      handles slow-but-not-failed calls.
+  fallback_summarizer:
+    type: string
+    default: agent.context_compressor.ContextCompressor
+    description: >
+      Dotted path to the summarizer class used when typed pruning alone cannot
+      reach the target context size; the built-in ContextCompressor by default.
