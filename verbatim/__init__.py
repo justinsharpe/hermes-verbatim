@@ -458,34 +458,41 @@ class VerbatimEngine(ContextEngine):
         """
         Return eligible tool-call/result pairs outside the protected zones.
         Each entry: {call_name, args_head, result_head, assistant_idx, tool_msg_idx}
+
+        FIX (CT-47813a8b): append the pair ONLY when its tool-result arrives —
+        never on tool-call arrival.  The previous implementation appended a pair
+        immediately when the assistant message was seen, then appended the *same*
+        object again (after populating result_head) when the tool result arrived,
+        causing every completed pair to appear twice in the list.
         """
         pairs: List[Dict[str, Any]] = []
-        tool_msg_idx_by_tcid: Dict[str, Dict[str, Any]] = {}
+        pending: Dict[str, Dict[str, Any]] = {}
 
         for i, msg in enumerate(messages):
             if i < protected_count:
                 continue
             if msg.get("role") == "tool":
                 tcid = str(msg.get("tool_call_id", ""))
-                if tcid in tool_msg_idx_by_tcid:
-                    pair = tool_msg_idx_by_tcid.pop(tcid)
+                if tcid in pending:
+                    pair = pending.pop(tcid)
                     pair["tool_msg_idx"] = i
                     pair["result_head"] = self._head(msg.get("content", ""), 400)
                     pairs.append(pair)
+                # else: orphan tool result with no matching call — skip silently
             elif msg.get("role") == "assistant":
                 for tc in msg.get("tool_calls") or []:
                     fn = tc.get("function", {})
                     tcid = str(tc.get("id", ""))
                     call_name = str(fn.get("name", "unknown"))
                     args_str = str(fn.get("arguments", ""))
-                    pair: Dict[str, Any] = {
+                    pending[tcid] = {
                         "call_name": call_name,
                         "args_head": self._head(args_str, 400),
                         "assistant_idx": i,
                         "tool_msg_idx": -1,
+                        "result_head": "",
                     }
-                    pairs.append(pair)
-                    tool_msg_idx_by_tcid[tcid] = pair
+                # NOTE: pairs is NOT modified here — append happens only on result arrival
 
         return pairs
 
