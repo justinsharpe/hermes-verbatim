@@ -9,7 +9,7 @@ description: >
   summary remains the fallback authority when typed pruning alone is
   insufficient. Every decision is logged with confidence to a local
   ledger for calibration analysis.
-author: Viiy
+author: Justin Sharpe
 license: Apache-2.0
 tags: [context-engine, compaction, context-management]
 requires_env: []

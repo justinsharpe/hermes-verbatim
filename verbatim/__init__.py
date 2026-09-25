@@ -5,9 +5,8 @@ Replaces age-based tool-result pruning with typed keep/drop/truncate decisions
 at compaction time.  Relevance-scored retention via a vendored typed-decision scorer;
 everything kept stays byte-exact; built-in summary retained as fallback.
 
-Pattern provenance (internal): typed-verdict surface with confidence attached,
-adapted 2026-09-18 from public prior art under ADOPT-PATTERN-ONLY; no third-party
-runtime imported.
+Pattern provenance: typed-verdict surface with confidence attached,
+adapted 2026-09-18 from public prior art; no third-party runtime imported.
 
 Activation (NOT automatic — separate gated step):
   Set in your profile's config.yaml:
